@@ -71,11 +71,13 @@ function conky_main()
   -- GREETING
   hour = tonumber(string.format('%-12s',conky_parse("${time %H}")))
   if hour < 12 then
-	this_time = "morning"
+		this_time = "morning"
+	elseif hour > 20 then
+		this_time = "night"
   elseif hour > 17 then
-	this_time = "evening"
+		this_time = "evening"
   else
-	this_time = "afternoon"
+		this_time = "afternoon"
   end
 
   local greeting_str = string.format("Good "..this_time..".")
@@ -88,7 +90,7 @@ function conky_main()
   -- CPU GRAPH
   -- Non-linear (sqrt instead) so graph area approximatly matches usage
 
-  local cx,cy = 320,0
+  local cx,cy = 325,0
   local height = 197
   local width = 44
   local gap = 12
@@ -180,7 +182,7 @@ function conky_main()
   local memperc = tonumber(conky_parse("$memperc"))
 
   local row,col = 0,0
-  local rows = 5
+  local rows = 6
   local perc = 0.0
   local perc_incr = 100.0 / 40.0
   local cx,cy = 1900,185
