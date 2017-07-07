@@ -1,4 +1,5 @@
 require 'cairo'
+--py = require 'python'
 
 COLOR_FONT_R = 0.95
 COLOR_FONT_G = 0.95
@@ -72,9 +73,9 @@ function conky_main()
   hour = tonumber(string.format('%-12s',conky_parse("${time %H}")))
   if hour < 12 then
 		this_time = "morning"
-	elseif hour > 20 then
+	elseif hour >= 20 then
 		this_time = "night"
-  elseif hour > 17 then
+  elseif hour >= 17 then
 		this_time = "evening"
   else
 		this_time = "afternoon"
@@ -207,80 +208,6 @@ function conky_main()
     end
     perc = perc + perc_incr
   end
-
-
-
-  -- RANDOMIZED BACKGROUND SQUARES
-
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,687,320)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,687,433)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,828,433)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,800,320)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,800,461)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,857,575)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,970,547)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,1027,644)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,998,519)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,1027,490)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,1055,320)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,1167,320)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,1252,461)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,913,320)
-	--
-  -- rand_col = math.random()
-  -- rand_box(rand_col,29,998,264)
-
-
-
---   -- BATTERY PERCENTAGE
---
---   batt = tonumber(conky_parse("${battery_percent BAT0}"))
---
---   local cx,cy = 1160,441
---   local width,height = 100,100
---   local filled_height = batt
---   local line_width = 5
---
---   cairo_set_source_rgba(cr, COLOR_BOX2_R, COLOR_BOX2_G, COLOR_BOX2_B, 1)
---   cairo_move_to(cr, cx, cy)
---   cairo_rel_line_to(cr, width, 0)
---   cairo_rel_line_to(cr, 0, -height)
---   cairo_rel_line_to(cr, -width, 0)
---   cairo_fill(cr)
---
---   cairo_set_source_rgba(cr, COLOR_BOX1_R, COLOR_BOX1_G, COLOR_BOX1_B, 1)
---   cairo_move_to(cr, cx, cy)
---   cairo_rel_line_to(cr, width, 0)
---   cairo_rel_line_to(cr, 0, -filled_height)
---   cairo_rel_line_to(cr, -width, 0)
---   cairo_fill(cr)
  end
 
 
@@ -293,12 +220,33 @@ function conky_fs_main()
     return
   end
 
-  local offset = 800
-  local gap = 79
+	-- FILE SYSTEM
+	local offset = 800
+	local gap = 79
 
-  draw_volume("     SSD", tonumber(conky_parse("${fs_used_perc /}")) , offset)
+	draw_volume("     SSD", tonumber(conky_parse("${fs_used_perc /}")) , offset)
   draw_volume("     HDD", tonumber(conky_parse("${fs_used_perc /home/jake/HDD/}")) , offset + gap)
   draw_volume("     MDS", tonumber(conky_parse("${fs_used_perc /home/jake/Media/}")) , offset + 2*gap)
+
+
+	-- PLEX (because 3 second interval)
+
+	cairo_set_font_size(cr, 10)
+	cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
+	cairo_move_to(cr, 25, 1035)
+	local song_title = conky_parse("${exec python ~/.conky/songTitle.py}")
+	cairo_show_text(cr, song_title)
+	cairo_stroke(cr)
+
+	cairo_move_to(cr, 25, 1050)
+	local song_title = conky_parse("${exec python ~/.conky/albumTitle.py}")
+	cairo_show_text(cr, song_title)
+	cairo_stroke(cr)
+
+	cairo_move_to(cr, 25, 1065)
+	local song_title = conky_parse("${exec python ~/.conky/artistTitle.py}")
+	cairo_show_text(cr, song_title)
+	cairo_stroke(cr)
 
 
   cairo_destroy(cr)
