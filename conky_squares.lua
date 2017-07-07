@@ -249,6 +249,26 @@ function conky_fs_main()
 	cairo_stroke(cr)
 
 
+	-- PING COMPUTERS (because also 3 second interval)
+	cairo_set_font_size(cr, 10)
+	cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
+	cairo_move_to(cr, 1875, 1035)
+	local song_title = "web-pi: " .. conky_parse("${exec python ~/.conky/ping.py web-pi}")
+	cairo_show_text(cr, song_title)
+	cairo_stroke(cr)
+
+	cairo_move_to(cr, 1879, 1050)
+	local song_title = "srv-pi: " .. conky_parse("${exec python ~/.conky/ping.py srv-pi}")
+	cairo_show_text(cr, song_title)
+	cairo_stroke(cr)
+
+	cairo_move_to(cr, 1855, 1065)
+	local song_title = "plex-server: " .. conky_parse("${exec python ~/.conky/ping.py plex-server}")
+	cairo_show_text(cr, song_title)
+	cairo_stroke(cr)
+
+
+
   cairo_destroy(cr)
   cairo_surface_destroy(cs)
   cr = nil
