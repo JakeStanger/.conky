@@ -183,16 +183,17 @@ function conky_main()
   local memperc = tonumber(conky_parse("$memperc"))
 
   local row,col = 0,0
-  local rows = 6
+  local rows = 10
   local perc = 0.0
-  local perc_incr = 100.0 / 40.0
-  local cx,cy = 1900,185
-	local grid_width = -41
-  for i = 1,40 do
-    if (memperc > perc) then
+  local perc_incr = 100.0 / 150.0
+  --local cx,cy = 1900,185
+	local cx,cy = 1910,195
+	local grid_width = -20
+  for i = 1,150 do
+    if (memperc > perc) then --Highlighted squares
       cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
       cairo_rectangle(cr, cx-grid_width/4, cy-grid_width/4, grid_width/2, grid_width/2)
-    else
+    else --Unhighlighted squares
       cairo_set_source_rgba(cr, COLOR_SECONDARY_R, COLOR_SECONDARY_G, COLOR_SECONDARY_B, 1)
       cairo_rectangle(cr, cx-grid_width/10, cy-grid_width/10, grid_width/5, grid_width/5)
     end
@@ -231,10 +232,15 @@ function conky_fs_main()
 
 	-- PLEX (because 3 second interval)
 
+	local isPaused = conky_parse("${exec python ~/.conky/isPaused.py}") == "True"
+
+	--cairo_select_font_face(cr, font2, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+
 	cairo_set_font_size(cr, 10)
 	cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
 	cairo_move_to(cr, 25, 1035)
 	local song_title = conky_parse("${exec python ~/.conky/songTitle.py}")
+	if isPaused then song_title = song_title .. " (Paused)" end
 	cairo_show_text(cr, song_title)
 	cairo_stroke(cr)
 
@@ -248,8 +254,15 @@ function conky_fs_main()
 	cairo_show_text(cr, song_title)
 	cairo_stroke(cr)
 
+	-- cairo_move_to(cr, 25, 1075)
+	-- local duration = conky_parse("${exec python ~/.conky/songDuration.py}")
+	-- local progress = conky_parse("${exec bash ~/.conky/updateProgress.sh " .. duration.. "}")
+	--
+	-- cairo_show_text(cr, progress .. "     " .. duration)
+
 
 	-- PING COMPUTERS (because also 3 second interval)
+
 	cairo_set_font_size(cr, 10)
 	cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
 	cairo_move_to(cr, 1875, 1035)
