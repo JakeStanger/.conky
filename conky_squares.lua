@@ -183,13 +183,13 @@ function conky_main()
   local memperc = tonumber(conky_parse("$memperc"))
 
   local row,col = 0,0
-  local rows = 10
+  local rows = 8
   local perc = 0.0
-  local perc_incr = 100.0 / 150.0
-  --local cx,cy = 1900,185
+  local perc_incr = 100.0 / 104.0
+  --local cx,cy = 1500,500
 	local cx,cy = 1910,195
-	local grid_width = -20
-  for i = 1,150 do
+	local grid_width = -24.5
+  for i = 1,104 do
     if (memperc > perc) then --Highlighted squares
       cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
       cairo_rectangle(cr, cx-grid_width/4, cy-grid_width/4, grid_width/2, grid_width/2)
