@@ -1,6 +1,7 @@
 from plexapi.server import PlexServer
 from urllib.request import urlretrieve
 from os.path import isfile
+import traceback
 
 baseurl = 'http://plex.lan:32400'
 token = ''
