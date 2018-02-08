@@ -1,29 +1,73 @@
 require 'cairo'
---py = require 'python'
+require 'imlib2'
 
-COLOR_FONT_R = 0.95
-COLOR_FONT_G = 0.95
-COLOR_FONT_B = 0.95
-
-COLOR_PRIMARY_R = 0.95
-COLOR_PRIMARY_G = 0.95
-COLOR_PRIMARY_B = 0.95
+COLOR_PRIMARY_R = 0.773
+COLOR_PRIMARY_G = 0.784
+COLOR_PRIMARY_B = 0.776
 
 COLOR_SECONDARY_R = 0.177
 COLOR_SECONDARY_G = 0.169
 COLOR_SECONDARY_B = 0.200
 
-COLOR_BACKGROUND_R = 0.177
-COLOR_BACKGROUND_G = 0.169
-COLOR_BACKGROUND_B = 0.200
+function round(x, n)
+    n = math.pow(10, n or 0)
+    x = x * n
+    if x >= 0 then x = math.floor(x + 0.5) else x = math.ceil(x - 0.5) end
+    return x / n
+end
 
-COLOR_BOX1_R = 0.216
-COLOR_BOX1_G = 0.404
-COLOR_BOX1_B = 0.651
 
-COLOR_BOX2_R = 0.388
-COLOR_BOX2_G = 0.420
-COLOR_BOX2_B = 0.949
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
+
+function sleep (a)
+    local sec = tonumber(os.clock() + a);
+    while (os.clock() < sec) do
+    end
+end
+
+function image(im)
+  x=nil
+  x=(im.x or 0)
+  y=nil
+  y=(im.y or 0)
+  w=nil
+  w=(im.w or 0)
+  h=nil
+  h=(im.h or 0)
+  file=nil
+  file=tostring(im.file)
+  if file==nil then print("set image file") end
+
+  local show = imlib_load_image(file)
+  if show == nil then return end
+
+  imlib_context_set_image(show)
+
+  if tonumber(w)==0 then
+    width=imlib_image_get_width()
+  else
+    width=tonumber(w)
+  end
+  if tonumber(h)==0 then
+    height=imlib_image_get_height()
+  else
+    height=tonumber(h)
+  end
+
+  imlib_context_set_image(show)
+  local scaled=imlib_create_cropped_scaled_image(0, 0, imlib_image_get_width(), imlib_image_get_height(), width, height)
+  imlib_free_image()
+  imlib_context_set_image(scaled)
+  imlib_render_image_on_drawable(x, y)
+  imlib_free_image()
+  show=nil
+end
+
 
 function init_cairo()
   if conky_window == nil then
@@ -39,10 +83,10 @@ function init_cairo()
 
   cr = cairo_create(cs)
 
-  font = "Overpass"
+  font = "Source Code Pro"
 
   cairo_select_font_face(cr, font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
-  cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 1)
+  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
 
   return true
 end
@@ -52,164 +96,46 @@ function conky_main()
     return
   end
 
-  -- TIME
-  cairo_set_font_size(cr, 110)
-  cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
-  cairo_move_to(cr, 20, 100)
-  cairo_show_text(cr, conky_parse("${time %H:%M}"))
-  cairo_stroke(cr)
 
+  local cx,cy = 10, 980
+  local height = 90
+  local width = 22
+  local gap = 5
 
-  -- DATE
-  cairo_set_font_size(cr, 40)
-  cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
-  cairo_move_to(cr, 25, 150)
-  local time_str = string.format('%-12s',conky_parse("${time %d/%m/%Y}"))
-  cairo_show_text(cr, time_str)
-  cairo_stroke(cr)
+  -- CPU GRAPHS
+  local num_cpus = 8
+  for i = 1, num_cpus, 1 do
+    local cpu = 0.05 + tonumber(conky_parse('${cpu cpu' .. i .. '}') / 100.0) * 0.95
 
-
-  -- GREETING
-  hour = tonumber(string.format('%-12s',conky_parse("${time %H}")))
-  if hour < 12 then
-		this_time = "morning"
-	elseif hour >= 20 then
-		this_time = "night"
-  elseif hour >= 17 then
-		this_time = "evening"
-  else
-		this_time = "afternoon"
+    cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
+    cairo_move_to(cr, cx + (i-1)*(width + gap), cy + height)
+    cairo_rel_line_to(cr, width, 0)
+    cairo_rel_line_to(cr, 0, -height*cpu)
+    cairo_rel_line_to(cr, -width, 0)
+    cairo_fill(cr)
+    cairo_move_to(cr, cx + (i-1)*(width + gap), cy + height +  10)
+    cairo_show_text(cr, round(cpu, 2)*100 .. "%")
   end
-
-  local greeting_str = string.format("Good "..this_time..".")
-  cairo_set_font_size(cr, 40)
-  cairo_move_to(cr, 25, 190)
-  cairo_show_text(cr, greeting_str)
-  cairo_stroke(cr)
-
-
-  -- CPU GRAPH
-  -- Non-linear (sqrt instead) so graph area approximatly matches usage
-
-  local cx,cy = 325,0
-  local height = 197
-  local width = 44
-  local gap = 12
-
-  local cpu1 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu1}")) / 100.0) * 0.95
-  local cpu2 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu2}")) / 100.0) * 0.95
-  local cpu3 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu3}")) / 100.0) * 0.95
-  local cpu4 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu4}")) / 100.0) * 0.95
-	local cpu5 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu5}")) / 100.0) * 0.95
-	local cpu6 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu6}")) / 100.0) * 0.95
-	local cpu7 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu7}")) / 100.0) * 0.95
-	local cpu8 = 0.05 + math.sqrt(tonumber(conky_parse("${cpu cpu8}")) / 100.0) * 0.95
-
-
-  -- CPU 1
-  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  cairo_move_to(cr, cx, cy)
-  cairo_rel_line_to(cr, width, 0)
-  cairo_rel_line_to(cr, 0, height*cpu1)
-  cairo_rel_line_to(cr, -width, 0)
-  cairo_fill(cr)
-
-
-  -- CPU 2
-  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  cairo_move_to(cr, cx + width + gap, cy)
-  cairo_rel_line_to(cr, width, 0)
-  cairo_rel_line_to(cr, 0, height*cpu2)
-  cairo_rel_line_to(cr, -width, 0)
-  cairo_fill(cr)
-
-
-  -- CPU 3
-  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  cairo_move_to(cr, cx + 2*width + 2*gap, cy)
-  cairo_rel_line_to(cr, width, 0)
-  cairo_rel_line_to(cr, 0, height*cpu3)
-  cairo_rel_line_to(cr, -width, 0)
-  cairo_fill(cr)
-
-
-  -- CPU 4
-  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  cairo_move_to(cr, cx + 3*width + 3*gap, cy)
-  cairo_rel_line_to(cr, width, 0)
-  cairo_rel_line_to(cr, 0, height*cpu4)
-  cairo_rel_line_to(cr, -width, 0)
-  cairo_fill(cr)
-
-
-	-- CPU 5
-	cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-	cairo_move_to(cr, cx + 4*width + 4*gap, cy)
-	cairo_rel_line_to(cr, width, 0)
-	cairo_rel_line_to(cr, 0, height*cpu5)
-	cairo_rel_line_to(cr, -width, 0)
-	cairo_fill(cr)
-
-
-	-- CPU 6
-	cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-	cairo_move_to(cr, cx + 5*width + 5*gap, cy)
-	cairo_rel_line_to(cr, width, 0)
-	cairo_rel_line_to(cr, 0, height*cpu6)
-	cairo_rel_line_to(cr, -width, 0)
-	cairo_fill(cr)
-
-
-	-- CPU 7
-	cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-	cairo_move_to(cr, cx + 6*width + 6*gap, cy)
-	cairo_rel_line_to(cr, width, 0)
-	cairo_rel_line_to(cr, 0, height*cpu7)
-	cairo_rel_line_to(cr, -width, 0)
-	cairo_fill(cr)
-
-
-	-- CPU 8
-	cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-	cairo_move_to(cr, cx + 7*width + 7*gap, cy)
-	cairo_rel_line_to(cr, width, 0)
-	cairo_rel_line_to(cr, 0, height*cpu8)
-	cairo_rel_line_to(cr, -width, 0)
-	cairo_fill(cr)
-
 
   -- MEMORY
+  local memmax = tonumber(conky_parse("$memmax"):sub(1, -4))
+  local mem = memmax - tonumber(conky_parse('$memeasyfree'):sub(1, -4))
+  local memperc = mem / memmax
+  mem_string = mem .. " GiB"
 
-  local memperc = tonumber(conky_parse("$memperc"))
+  cairo_move_to(cr, 240, cy + height)
+  cairo_rel_line_to(cr, width, 0)
+  cairo_rel_line_to(cr, 0, -height*memperc)
+  cairo_rel_line_to(cr, -width, 0)
+  cairo_fill(cr)
 
-  local row,col = 0,0
-  local rows = 8
-  local perc = 0.0
-  local perc_incr = 100.0 / 104.0
-  --local cx,cy = 1500,500
-	local cx,cy = 1910,195
-	local grid_width = -24.5
-  for i = 1,104 do
-    if (memperc > perc) then --Highlighted squares
-      cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-      cairo_rectangle(cr, cx-grid_width/4, cy-grid_width/4, grid_width/2, grid_width/2)
-    else --Unhighlighted squares
-      cairo_set_source_rgba(cr, COLOR_SECONDARY_R, COLOR_SECONDARY_G, COLOR_SECONDARY_B, 1)
-      cairo_rectangle(cr, cx-grid_width/10, cy-grid_width/10, grid_width/5, grid_width/5)
-    end
-    cairo_fill(cr)
+  cairo_move_to(cr, 240, 1080)
+  cairo_show_text(cr, round(memperc * 100, 0) .. "%")
 
-    row = row + 1
-    cy = cy + grid_width
-    if (row >= rows) then
-      row = row - rows
-      cy = cy - rows*grid_width
-      col = col + 1
-      cx = cx + grid_width
-    end
-    perc = perc + perc_incr
-  end
- end
+  cairo_destroy(cr)
+  cairo_surface_destroy(cs)
+  cr = nil
+end
 
 
 
@@ -222,115 +148,100 @@ function conky_fs_main()
   end
 
 	-- FILE SYSTEM
-	local offset = 800
-	local gap = 79
+  local cx,cy = 475, 980
+  local height = 11
+  local width = 195
+  local gap = 3
 
-	draw_volume("     SSD", tonumber(conky_parse("${fs_used_perc /}")) , offset)
-  draw_volume("     HDD", tonumber(conky_parse("${fs_used_perc /home/jake/HDD/}")) , offset + gap)
-  draw_volume("     MDS", tonumber(conky_parse("${fs_used_perc /home/jake/Media/}")) , offset + 2*gap)
+ local mounts = {}
+ mounts[1] = {"Root", "/"}
+ mounts[2] = {'Hard Drive', '/home/jake/HDD'}
+ mounts[3] = {'Music', '/home/jake/Media/Music'}
+ mounts[4] = {'Movies', '/home/jake/Media/Movies'}
+ mounts[5] = {'Television', '/home/jake/Media/Television'}
+ mounts[6] = {'Photos', '/home/jake/Media/Photos'}
+ mounts[7] = {'Downloads', '/home/jake/Media/Downloads'}
 
+  for i =1, tablelength(mounts), 1 do
+    drive_perc = tonumber(conky_parse("${fs_used_perc " .. mounts[i][2] .. "}"))
 
-	-- PLEX (because 3 second interval)
+    cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
+    cairo_move_to(cr, cx, cy + (i-1)*(height+gap))
+    cairo_rel_line_to(cr, 0, height)
+    cairo_rel_line_to(cr, -width * drive_perc / 100 , 0)
+    cairo_rel_line_to(cr, 0, -height)
+    cairo_fill(cr)
 
-	local isPaused = conky_parse("${exec python ~/.conky/isPaused.py}") == "True"
+    cairo_set_source_rgba(cr, COLOR_SECONDARY_R, COLOR_SECONDARY_G, COLOR_SECONDARY_B, 1)
+    label = mounts[i][1] .. ': ' .. drive_perc .. '%'
+    cairo_move_to(cr, cx - string.len(label)*6 - 5, cy + (i-1)*(height+gap) + height / 2 + 3)
+    cairo_show_text(cr, label)
+  end
+
+	-- ALBUM INFO
+
+  conky_parse("${exec python ~/.conky/currentSong.py}")
+
+  local isPaused = conky_parse("${exec cat ~/.conky/data/paused}") == "True"
 
 	--cairo_select_font_face(cr, font2, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
-	cairo_set_font_size(cr, 10)
-	cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
-	cairo_move_to(cr, 25, 1035)
-	local song_title = conky_parse("${exec python ~/.conky/songTitle.py}")
+  local cx, cy = 1560, 990
+
+	cairo_set_font_size(cr, 15)
+	cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
+	cairo_move_to(cr, cx, cy)
+	local song_title = conky_parse("${exec cat ~/.conky/data/track}")
 	if isPaused then song_title = song_title .. " (Paused)" end
 	cairo_show_text(cr, song_title)
 	cairo_stroke(cr)
 
-	cairo_move_to(cr, 25, 1050)
-	local song_title = conky_parse("${exec python ~/.conky/albumTitle.py}")
-	cairo_show_text(cr, song_title)
+	cairo_move_to(cr, cx, cy + 20)
+	local album_title = conky_parse("${exec cat ~/.conky/data/album}")
+	cairo_show_text(cr, album_title)
 	cairo_stroke(cr)
 
-	cairo_move_to(cr, 25, 1065)
-	local song_title = conky_parse("${exec python ~/.conky/artistTitle.py}")
-	cairo_show_text(cr, song_title)
+	cairo_move_to(cr, cx, cy + 40)
+	local artist_title = conky_parse("${exec cat ~/.conky/data/artist}")
+	cairo_show_text(cr, artist_title)
 	cairo_stroke(cr)
 
-	-- cairo_move_to(cr, 25, 1075)
-	-- local duration = conky_parse("${exec python ~/.conky/songDuration.py}")
-	-- local progress = conky_parse("${exec bash ~/.conky/updateProgress.sh " .. duration.. "}")
-	--
-	-- cairo_show_text(cr, progress .. "     " .. duration)
+  -- -- ALBUM COVER
+   image({x=1455, y=980, h=100, w=100, file='/home/jake/.conky/data/thumbs/' .. album_title})
+  -- image = cairo_image_surface_create_from_png ("/home/jake/.conky/data/thumbs/" .. album_title);
+  -- w = cairo_image_surface_get_width (image);
+  -- h = cairo_image_surface_get_height (image);
+  --
+  -- cairo_translate (cr, 1455, 980.0);
+  -- cairo_scale  (cr, 100.0/w, 100.0/h);
+  -- --cairo_translate (cr, -0.5*w, -0.5*h);
+  --
+  -- cairo_set_source_surface (cr, image, 0, 0);
+  -- cairo_paint (cr);
+  -- cairo_surface_destroy (image);
 
+	--PING COMPUTERS (because also 3 second interval)
 
-	-- PING COMPUTERS (because also 3 second interval)
-
-	cairo_set_font_size(cr, 10)
-	cairo_set_source_rgba(cr, COLOR_FONT_R, COLOR_FONT_G, COLOR_FONT_B, 0.9)
-	cairo_move_to(cr, 1875, 1035)
-	local song_title = "web-pi: " .. conky_parse("${exec python ~/.conky/ping.py web-pi}")
-	cairo_show_text(cr, song_title)
-	cairo_stroke(cr)
-
-	cairo_move_to(cr, 1879, 1050)
-	local song_title = "srv-pi: " .. conky_parse("${exec python ~/.conky/ping.py srv-pi}")
-	cairo_show_text(cr, song_title)
-	cairo_stroke(cr)
-
-	cairo_move_to(cr, 1855, 1065)
-	local song_title = "plex-server: " .. conky_parse("${exec python ~/.conky/ping.py plex-server}")
-	cairo_show_text(cr, song_title)
-	cairo_stroke(cr)
+	-- cairo_set_font_size(cr, 10)
+	-- cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 0.9)
+	-- cairo_move_to(cr, 1875, 1035)
+	-- local song_title = "web-pi: " .. conky_parse("${exec python ~/.conky/ping.py web-pi}")
+	-- cairo_show_text(cr, song_title)
+	-- cairo_stroke(cr)
+  --
+	-- cairo_move_to(cr, 1879, 1050)
+	-- local song_title = "srv-pi: " .. conky_parse("${exec python ~/.conky/ping.py srv-pi}")
+	-- cairo_show_text(cr, song_title)
+	-- cairo_stroke(cr)
+  --
+	-- cairo_move_to(cr, 1855, 1065)
+	-- local song_title = "plex-server: " .. conky_parse("${exec python ~/.conky/ping.py plex-server}")
+	-- cairo_show_text(cr, song_title)
+	-- cairo_stroke(cr)
 
 
 
   cairo_destroy(cr)
   cairo_surface_destroy(cs)
   cr = nil
-end
-
-
-function rand_box(rand_col,box_size,cx,cy)
-  if (rand_col < 0.2) then
-    cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  elseif (rand_col >= 0.2 and rand_col < 0.4) then
-    cairo_set_source_rgba(cr, COLOR_SECONDARY_R, COLOR_SECONDARY_G, COLOR_SECONDARY_B, 1)
-  elseif (rand_col >= 0.4 and rand_col < 0.6) then
-    cairo_set_source_rgba(cr, COLOR_BOX1_R, COLOR_BOX1_G, COLOR_BOX1_B, 1)
-  elseif (rand_col >= 0.6 and rand_col < 0.8) then
-    cairo_set_source_rgba(cr, COLOR_BOX2_R, COLOR_BOX2_G, COLOR_BOX2_B, 1)
-  else
-    cairo_set_source_rgba(cr, COLOR_BACKGROUND_R, COLOR_BACKGROUND_G, COLOR_BACKGROUND_B, 1)
-  end
-  cairo_rectangle(cr, cx-box_size/4, cy-box_size/4, box_size/2, box_size/2)
-  cairo_fill(cr)
-end
-
-
-function draw_volume(name, used, cx)
-  local cy = 187
-  local width,height = 55,15
-  local volume_height = cy
-  local filled_height = volume_height - (volume_height * used / 100)
-  local line_width = 5
-
-	-- Background
-	cairo_set_source_rgba(cr, COLOR_SECONDARY_R, COLOR_SECONDARY_G, COLOR_SECONDARY_B, 1)
-  cairo_move_to(cr, cx, cy)
-  cairo_rel_line_to(cr, width, 0)
-  cairo_rel_line_to(cr, 0, -volume_height)
-  cairo_rel_line_to(cr, -width, 0)
-  cairo_fill(cr)
-
-	-- Foreground
-	cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  cairo_move_to(cr, cx, cy-volume_height)
-  cairo_rel_line_to(cr, width, 0)
-  cairo_rel_line_to(cr, 0, volume_height - filled_height)
-  cairo_rel_line_to(cr, -width, 0)
-  cairo_fill(cr)
-
-  -- Drive name
-  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
-  cairo_move_to(cr, cx, cy + 10)
-  cairo_show_text(cr, name)
-  cairo_stroke(cr)
 end
