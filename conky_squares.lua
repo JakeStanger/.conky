@@ -208,40 +208,60 @@ function conky_fs_main()
 
   -- -- ALBUM COVER
    image({x=1455, y=980, h=100, w=100, file='/home/jake/.conky/data/thumbs/' .. album_title})
-  -- image = cairo_image_surface_create_from_png ("/home/jake/.conky/data/thumbs/" .. album_title);
-  -- w = cairo_image_surface_get_width (image);
-  -- h = cairo_image_surface_get_height (image);
-  --
-  -- cairo_translate (cr, 1455, 980.0);
-  -- cairo_scale  (cr, 100.0/w, 100.0/h);
-  -- --cairo_translate (cr, -0.5*w, -0.5*h);
-  --
-  -- cairo_set_source_surface (cr, image, 0, 0);
-  -- cairo_paint (cr);
-  -- cairo_surface_destroy (image);
-
-	--PING COMPUTERS (because also 3 second interval)
-
-	-- cairo_set_font_size(cr, 10)
-	-- cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 0.9)
-	-- cairo_move_to(cr, 1875, 1035)
-	-- local song_title = "web-pi: " .. conky_parse("${exec python ~/.conky/ping.py web-pi}")
-	-- cairo_show_text(cr, song_title)
-	-- cairo_stroke(cr)
-  --
-	-- cairo_move_to(cr, 1879, 1050)
-	-- local song_title = "srv-pi: " .. conky_parse("${exec python ~/.conky/ping.py srv-pi}")
-	-- cairo_show_text(cr, song_title)
-	-- cairo_stroke(cr)
-  --
-	-- cairo_move_to(cr, 1855, 1065)
-	-- local song_title = "plex-server: " .. conky_parse("${exec python ~/.conky/ping.py plex-server}")
-	-- cairo_show_text(cr, song_title)
-	-- cairo_stroke(cr)
-
-
 
   cairo_destroy(cr)
   cairo_surface_destroy(cs)
   cr = nil
+end
+
+
+function conky_clock()
+  if (not init_cairo()) then
+    return
+  end
+
+  cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
+
+  date_table = os.date('*t')
+
+  hours = date_table['hour']
+  minutes = date_table['min']
+  seconds = date_table['sec']
+
+  hours_str = tostring(hours)
+  if string.len(hours_str) == 1 then hours_str = '0' .. hours_str end
+
+  minutes_str = tostring(minutes)
+  if string.len(minutes_str) == 1 then minutes_str = '0' .. minutes_str end
+
+  seconds_str = tostring(seconds)
+  if string.len(seconds_str) == 1 then seconds_str = '0' .. seconds_str end
+
+  cairo_move_to(cr, 1100, 750)
+  cairo_set_font_size(cr, 75)
+  cairo_show_text(cr, hours_str .. ':' .. minutes_str .. ':' .. seconds_str)
+  cairo_stroke(cr)
+
+  if hours > 12 then hours = hours - 12 end
+  if seconds == 0 then seconds = 60 end
+
+  center_x=1280
+  center_y=720
+  radius=400
+  start_angle=-math.pi/2
+
+  end_angle=start_angle+((hours + minutes/60) / 12)*2*math.pi
+  cairo_set_line_width(cr, 50)
+  cairo_arc (cr,center_x,center_y,radius,start_angle,end_angle)
+  cairo_stroke (cr)
+
+  end_angle=start_angle+((minutes + seconds/60) / 60)*2*math.pi
+  cairo_set_line_width(cr, 50)
+  cairo_arc (cr,center_x,center_y,radius * 0.8,start_angle,end_angle)
+  cairo_stroke (cr)
+
+  end_angle=start_angle+(seconds / 60)*2*math.pi
+  cairo_set_line_width(cr, 50)
+  cairo_arc (cr,center_x,center_y,radius*0.6,start_angle,end_angle)
+  cairo_stroke (cr)
 end

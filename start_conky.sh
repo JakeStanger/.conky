@@ -3,3 +3,4 @@
 
 conky -c /home/jake/.conky/squares.conky -dq
 conky -c /home/jake/.conky/filesystem.conky -dq
+conky -c /home/jake/.conky/clock.conky -dq
