@@ -213,15 +213,19 @@ function conky_fs_main()
    cairo_move_to(cr, cx, cy + 80)
 
    LENGTH = 350
-   local duration = round(tonumber(conky_parse("${exec cat ~/.conky/data/duration}")) / 1000, 0)
-   local start_time = round(tonumber(conky_parse("${exec cat ~/.conky/data/startTime}")), 0)
+   local duration = tonumber(conky_parse("${exec cat ~/.conky/data/duration}"))
+   if duration ~= 0 then
+     duration = round(duration / 1000, 0)
+     local start_time = round(tonumber(conky_parse("${exec cat ~/.conky/data/startTime}")), 0)
+     local elapsed = os.time() - start_time
 
-   local elapsed = os.time() - start_time
-   cairo_line_to (cr, cx+ (elapsed/duration)*LENGTH, cy + 80);
-   cairo_stroke(cr)
-   cairo_arc (cr, cx+ (elapsed/duration)*LENGTH, cy + 80, 5, 0, 2*math.pi)
-   cairo_fill(cr)
-   cairo_stroke(cr)
+     cairo_line_to (cr, cx+ (elapsed/duration)*LENGTH, cy + 80)
+     cairo_stroke(cr)
+
+     cairo_arc (cr, cx+ (elapsed/duration)*LENGTH, cy + 80, 5, 0, 2*math.pi)
+     cairo_fill(cr)
+     cairo_stroke(cr)
+   end
 
   cairo_destroy(cr)
   cairo_surface_destroy(cs)
