@@ -30,6 +30,34 @@ function sleep (a)
     end
 end
 
+
+function split(str, delim, maxNb)
+   -- Eliminate bad cases...
+   if string.find(str, delim) == nil then
+      return { str }
+   end
+   if maxNb == nil or maxNb < 1 then
+      maxNb = 0    -- No limit
+   end
+   local result = {}
+   local pat = "(.-)" .. delim .. "()"
+   local nb = 0
+   local lastPos
+   for part, pos in string.gfind(str, pat) do
+      nb = nb + 1
+      result[nb] = part
+      lastPos = pos
+      if nb == maxNb then
+         break
+      end
+   end
+   -- Handle the last field
+   if nb ~= maxNb then
+      result[nb + 1] = string.sub(str, lastPos)
+   end
+   return result
+end
+
 function image(im)
   x=nil
   x=(im.x or 0)
@@ -240,6 +268,7 @@ function conky_clock()
 
   cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
 
+-- CLOCK
   date_table = os.date('*t')
 
   hours = date_table['hour']
@@ -282,4 +311,27 @@ function conky_clock()
   cairo_set_line_width(cr, 50)
   cairo_arc (cr,center_x,center_y,radius*0.6,start_angle,end_angle)
   cairo_stroke (cr)
+end
+
+function conky_server_uptime()
+	if (not init_cairo()) then
+    return
+  end
+
+	-- SERVER UPTIME
+  days = split(string.sub(conky_parse('${exec ssh media-server uptime}'), 14), ' ')[1]
+
+	cairo_move_to(cr, 50, 80)
+	cairo_set_font_size(cr, 50)
+  cairo_show_text(cr, days .. " days")
+  cairo_stroke(cr)
+
+	cairo_move_to(cr, 50, 150)
+  cairo_show_text(cr, 'without an accident')
+  cairo_stroke(cr)
+
+	cairo_set_line_width (cr, 5);
+	cairo_rectangle (cr, 40, 35, 80, 55);
+	cairo_stroke (cr);
+
 end
