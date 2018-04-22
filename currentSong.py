@@ -37,7 +37,7 @@ for session in plex.sessions():
                     if thumb:
                         thumb = thumb[1:]
 
-                        url = "http://music.jakestanger.com/image/%s/90" % thumb
+                        url = "http://music.jakestanger.com/image/%s/100" % thumb
                         urlretrieve(url, path)
 
                 writeData('track', session.title)

@@ -235,7 +235,7 @@ function conky_fs_main()
 	cairo_stroke(cr)
 
   --  ALBUM COVER
-   image({x=1455, y=980, h=100, w=100, file='/home/jake/.conky/data/thumbs/' .. album_title})
+   image({x=1455, y=977, h=100, w=100, file='/home/jake/.conky/data/thumbs/' .. album_title})
 
    -- PROGRESS BAR
    cairo_move_to(cr, cx, cy + 80)
@@ -291,23 +291,23 @@ function conky_clock()
 
   if hours > 12 then hours = hours - 12 end
 
-  center_x=1280
-  center_y=720
-  radius=400
-  start_angle=-math.pi/2
+  local center_x=1280
+  local center_y=720
+  local radius=400
+  local start_angle=-math.pi/2
 
-  end_angle=start_angle+((hours + minutes/60 + seconds /3600) / 12)*2*math.pi
+  local end_angle = start_angle+((hours + minutes/60 + seconds /3600) / 12)*2*math.pi
   cairo_set_line_width(cr, 50)
   cairo_arc (cr,center_x,center_y,radius,start_angle,end_angle)
   cairo_stroke (cr)
 
-  end_angle=start_angle+((minutes + seconds/60) / 60)*2*math.pi
+  local end_angle = start_angle+((minutes + seconds/60) / 60)*2*math.pi
   cairo_set_line_width(cr, 50)
   cairo_arc (cr,center_x,center_y,radius * 0.8,start_angle,end_angle)
   cairo_stroke (cr)
 
   if seconds == 0 then seconds = 60 end
-  end_angle=start_angle+(seconds / 60)*2*math.pi
+  local end_angle=start_angle+(seconds / 60)*2*math.pi
   cairo_set_line_width(cr, 50)
   cairo_arc (cr,center_x,center_y,radius*0.6,start_angle,end_angle)
   cairo_stroke (cr)
@@ -319,11 +319,15 @@ function conky_server_uptime()
   end
 
 	-- SERVER UPTIME
-  days = split(string.sub(conky_parse('${exec ssh media-server uptime}'), 14), ' ')[1]
+  local days = conky_parse('${exec ssh media-server uptime | awk -F\'( |,|:)+\' \'{if ($7=="min") m=$6; else {if ($7~/^day/) {d=$6;h=$8;m=$9} else {h=$6;m=$7}}} {print d+0,"days"}\' }')
+  print(split(days, " ")[1])
+  if tonumber(split(days, " ")[1]) < 10 then
+      days = '0' .. days
+  end
 
 	cairo_move_to(cr, 50, 80)
 	cairo_set_font_size(cr, 50)
-  cairo_show_text(cr, days .. " days")
+  cairo_show_text(cr, days)
   cairo_stroke(cr)
 
 	cairo_move_to(cr, 50, 150)
