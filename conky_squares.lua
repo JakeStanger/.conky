@@ -59,16 +59,16 @@ function split(str, delim, maxNb)
 end
 
 function image(im)
-  x=nil
-  x=(im.x or 0)
-  y=nil
-  y=(im.y or 0)
-  w=nil
-  w=(im.w or 0)
-  h=nil
-  h=(im.h or 0)
-  file=nil
-  file=tostring(im.file)
+  local x
+    x=(im.x or 0)
+  local y
+    y=(im.y or 0)
+  local w
+    w=(im.w or 0)
+  local h
+    h=(im.h or 0)
+  local file
+    file=tostring(im.file)
   if file==nil then print("set image file") end
 
   local show = imlib_load_image(file)
@@ -77,14 +77,14 @@ function image(im)
   imlib_context_set_image(show)
 
   if tonumber(w)==0 then
-    width=imlib_image_get_width()
+    local width=imlib_image_get_width()
   else
-    width=tonumber(w)
+    local width=tonumber(w)
   end
   if tonumber(h)==0 then
-    height=imlib_image_get_height()
+    local height=imlib_image_get_height()
   else
-    height=tonumber(h)
+    local height=tonumber(h)
   end
 
   imlib_context_set_image(show)
@@ -102,16 +102,16 @@ function init_cairo()
     return false
   end
 
-  cs = cairo_xlib_surface_create(
+  local cs = cairo_xlib_surface_create(
     conky_window.display,
     conky_window.drawable,
     conky_window.visual,
     conky_window.width,
     conky_window.height)
 
-  cr = cairo_create(cs)
+  local cr = cairo_create(cs)
 
-  font = "Source Code Pro"
+  local font = "Source Code Pro"
 
   cairo_select_font_face(cr, font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
   cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
@@ -149,7 +149,7 @@ function conky_main()
   local memmax = tonumber(conky_parse("$memmax"):sub(1, -4))
   local mem = memmax - tonumber(conky_parse('$memeasyfree'):sub(1, -4))
   local memperc = mem / memmax
-  mem_string = mem .. " GiB"
+  local _ = mem .. " GiB"
 
   cairo_move_to(cr, 240, cy + height)
   cairo_rel_line_to(cr, width, 0)
@@ -162,7 +162,8 @@ function conky_main()
 
   cairo_destroy(cr)
   cairo_surface_destroy(cs)
-  cr = nil
+
+    cr = nil
 end
 
 
@@ -191,7 +192,7 @@ function conky_fs_main()
  mounts[7] = {'Downloads', '/home/jake/Media/Downloads'}
 
   for i =1, tablelength(mounts), 1 do
-    drive_perc = tonumber(conky_parse("${fs_used_perc " .. mounts[i][2] .. "}"))
+    local drive_perc = tonumber(conky_parse("${fs_used_perc " .. mounts[i][2] .. "}"))
 
     cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
     cairo_move_to(cr, cx, cy + (i-1)*(height+gap))
@@ -201,7 +202,7 @@ function conky_fs_main()
     cairo_fill(cr)
 
     cairo_set_source_rgba(cr, COLOR_SECONDARY_R, COLOR_SECONDARY_G, COLOR_SECONDARY_B, 1)
-    label = mounts[i][1] .. ': ' .. drive_perc .. '%'
+    local label = mounts[i][1] .. ': ' .. drive_perc .. '%'
     cairo_move_to(cr, cx - string.len(label)*6 - 5, cy + (i-1)*(height+gap) + height / 2 + 3)
     cairo_show_text(cr, label)
   end
@@ -240,7 +241,7 @@ function conky_fs_main()
    -- PROGRESS BAR
    cairo_move_to(cr, cx, cy + 80)
 
-   LENGTH = 350
+   local LENGTH = 350
    local duration = tonumber(conky_parse("${exec cat ~/.conky/data/duration}"))
    if duration ~= 0 then
      duration = round(duration / 1000, 0)
@@ -269,19 +270,19 @@ function conky_clock()
   cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
 
 -- CLOCK
-  date_table = os.date('*t')
+  local date_table = os.date('*t')
 
-  hours = date_table['hour']
-  minutes = date_table['min']
-  seconds = date_table['sec']
+  local hours = date_table['hour']
+  local minutes = date_table['min']
+  local seconds = date_table['sec']
 
-  hours_str = tostring(hours)
+  local hours_str = tostring(hours)
   if string.len(hours_str) == 1 then hours_str = '0' .. hours_str end
 
-  minutes_str = tostring(minutes)
+  local minutes_str = tostring(minutes)
   if string.len(minutes_str) == 1 then minutes_str = '0' .. minutes_str end
 
-  seconds_str = tostring(seconds)
+  local seconds_str = tostring(seconds)
   if string.len(seconds_str) == 1 then seconds_str = '0' .. seconds_str end
 
   cairo_move_to(cr, 1100, 750)
