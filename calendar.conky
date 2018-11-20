@@ -1,6 +1,6 @@
 conky.config = {
-  xinerama_head = 1,
-  update_interval=1,
+	xinerama_head = 0,
+  update_interval=2,
   background=false,
   text_buffer_size=2048,
   double_buffer=true,
@@ -18,14 +18,14 @@ conky.config = {
   own_window_argb_visual = true,
   own_window_argb_value = 0,
   draw_graph_borders=false,
-  minimum_width = 1920, minimum_height = 1080,
-  maximum_width = 1920,
+  minimum_width = 2560, minimum_height = 1440,
+  maximum_width = 2560,
   alignment = 'top_left',
   gap_x = 0,
   gap_y = 0,
   default_color = '#494b5a',
   lua_load = '/home/jake/.conky/conky_squares.lua',
-  lua_draw_hook_pre = 'conky_clock'
+  lua_draw_hook_pre = 'conky_calendar'
 };
 
 conky.text = [[

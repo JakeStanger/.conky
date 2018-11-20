@@ -1,5 +1,5 @@
 conky.config = {
-  xinerama_head = 0,
+  xinerama_head = 1,
   update_interval=60,
   background=false,
   text_buffer_size=2048,
@@ -18,8 +18,8 @@ conky.config = {
   own_window_argb_visual = true,
   own_window_argb_value = 0,
   draw_graph_borders=false,
-  minimum_width = 2560, minimum_height = 1440,
-  maximum_width = 2560,
+  minimum_width = 1920, minimum_height = 1080,
+  maximum_width = 1920,
   alignment = 'top_left',
   gap_x = 0,
   gap_y = 0,
