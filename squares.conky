@@ -24,7 +24,7 @@ conky.config = {
   gap_x = 0,
   gap_y = 0,
   default_color = '#494b5a',
-  lua_load = '/home/jake/.conky/conky_squares.lua',
+  lua_load = '/home/jake/.config/conky/conky_squares.lua',
   lua_draw_hook_pre = 'conky_main'
 };
 

@@ -1,6 +1,6 @@
 conky.config = {
-	xinerama_head = 1,
-  update_interval=30,
+  xinerama_head = 0,
+  update_interval=0.05,
   background=false,
   text_buffer_size=2048,
   double_buffer=true,
@@ -24,8 +24,8 @@ conky.config = {
   gap_x = 0,
   gap_y = 0,
   default_color = '#494b5a',
-  lua_load = '/home/jake/.config/conky/conky_squares.lua',
-  lua_draw_hook_pre = 'conky_calendar'
+  lua_load = '/home/jake/.config/conky/platformer/main.lua',
+  lua_draw_hook_pre = 'main'
 };
 
 conky.text = [[
