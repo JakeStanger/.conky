@@ -376,7 +376,10 @@ function conky_fs_main()
     
 
     -- LYRICS
-    local lyrics = split(conky_parse("${exec /home/jake/.config/conky/mpd/lyrics.sh}"), "\n")
+    local track = conky_parse("${exec mpc -f %title% | head -n 1}")
+    local artist = conky_parse("${exec mpc -f %artist% | head -n 1}")
+
+    local lyrics = split(conky_parse("${exec /home/jake/.config/conky/mpd/lyrics.js \"" .. track .. "\" \"" .. artist .. "\"}"), "\n")
     
     cx, cy = 20, 160
     cairo_set_source_rgba(cr, COLOR_PRIMARY_R, COLOR_PRIMARY_G, COLOR_PRIMARY_B, 1)
